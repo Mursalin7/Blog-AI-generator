@@ -4,6 +4,7 @@ import { OpenAI } from "openai";
 import { ChangeEvent, useState } from "react";
 
 export default function Home() {
+  console.log("******",process.env,process.env.OPENAI_API_KEY)
   const [input, setInput] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
