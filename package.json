@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "cross-env OPENAI_API_KEY='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' && next start",
+    "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
