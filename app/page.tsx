@@ -4,7 +4,7 @@ import { OpenAI } from "openai";
 import { ChangeEvent, useState } from "react";
 
 export default function Home() {
-  console.log("******",process.env,process.env.OPENAI_API_KEY)
+  console.log("******",process.env.REACT_APP_OPENAI_API_KEY)
   const [input, setInput] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -13,7 +13,7 @@ export default function Home() {
     setInput(e.target.value);
   };
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY, dangerouslyAllowBrowser: true
+    apiKey: process.env.REACT_APP_OPENAI_API_KEY, dangerouslyAllowBrowser: true
   });
   const generatePost = async () => {
     setIsLoading(true);
