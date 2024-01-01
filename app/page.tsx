@@ -1,19 +1,28 @@
 "use client"
+import getConfig from "next/config";
 import Head from "next/head";
 import { OpenAI } from "openai";
 import { ChangeEvent, useState } from "react";
 
+const {
+  serverRuntimeConfig: { OPENAI_API_KEY },
+} = getConfig();
+
 export default function Home() {
-  console.log("******",process.env.REACT_APP_OPENAI_API_KEY)
+  console.log("******",OPENAI_API_KEY)
   const [input, setInput] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const envx=process.env.REACT_APP_OPENAI_API_KEY;
+  const envy=process.env.OPENAI_API_KEY;
+  const envz=process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  console.log("In main ",envx,"=",envy,"=",envz)
 
   const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
   const openai = new OpenAI({
-    apiKey: process.env.REACT_APP_OPENAI_API_KEY, dangerouslyAllowBrowser: true
+    apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true
   });
   const generatePost = async () => {
     setIsLoading(true);
