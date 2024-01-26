@@ -7,8 +7,6 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const APIKEY=process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-  console.log("In main ",APIKEY)
 
   const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
