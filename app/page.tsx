@@ -7,14 +7,15 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const APIKEY=process.env.OPENAI_API_KEY;
-  console.log("In main ",APIKEY)
+  const APIKEY=process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  const envVars = process.env;
+  console.log("In main ",APIKEY,":::",envVars)
 
   const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY
   });
   const generatePost = async () => {
     setIsLoading(true);
