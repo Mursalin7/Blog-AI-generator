@@ -3,23 +3,18 @@ import Head from "next/head";
 import { OpenAI } from "openai";
 import { ChangeEvent, useState } from "react";
 
-// const {
-//   serverRuntimeConfig: { OPENAI_API_KEY },
-// } = getConfig();
-
 export default function Home() {
   const [input, setInput] = useState("");
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const envx=process.env.REACT_APP_OPENAI_API_KEY;
   const APIKEY=process.env.OPENAI_API_KEY;
-  console.log("In main ",envx,"=",APIKEY)
+  console.log("In main ",APIKEY)
 
   const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
   };
   const openai = new OpenAI({
-    apiKey: APIKEY, dangerouslyAllowBrowser: true
+    apiKey: process.env.OPENAI_API_KEY
   });
   const generatePost = async () => {
     setIsLoading(true);
