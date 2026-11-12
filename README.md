@@ -18,7 +18,7 @@ For production, also add the deployed domain to Supabase's allowed redirect URLs
 ## Article generation
 
 Topics must be 3–500 characters. Drafts are limited to about 150–220 words and
-450 generated tokens, use Groq's hosted `qwen/qwen3.6-27b` model, and do not
+450 generated tokens, use Groq's hosted `qwen/qwen3.8-27b` model, and do not
 include an author byline or signature. Requests are sent to Groq using its
 official SDK.
 

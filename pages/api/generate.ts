@@ -128,7 +128,7 @@ export default async function handler(
     });
 
     const completion = await groq.chat.completions.create({
-      model: "qwen/qwen3.6-27b",
+      model: "qwen/qwen3.8-27b",
       messages: [
         {
           role: "system",
@@ -149,6 +149,13 @@ export default async function handler(
     });
   } catch (error) {
     console.error(error);
+    if (error instanceof Groq.NotFoundError) {
+      return res.status(502).json({
+        error:
+          "The configured Groq model is unavailable. Check the model ID in the server configuration.",
+      });
+    }
+
     res.status(502).json({
       error: "Article generation failed. Please try again later.",
     });

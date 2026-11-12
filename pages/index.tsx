@@ -513,7 +513,7 @@ const HomePage = () => {
                   <span className="chip-icon chip-icon-cyan" aria-hidden="true">
                     ◉
                   </span>
-                  QWEN 3.6 27B
+                  QWEN 3.8 27B
                 </span>
                 <span className="detail-chip">
                   <span className="chip-icon" aria-hidden="true">
