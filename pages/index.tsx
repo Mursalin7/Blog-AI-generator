@@ -117,6 +117,7 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"signIn" | "signUp">("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -126,6 +127,9 @@ const HomePage = () => {
   const [remainingToday, setRemainingToday] = useState<number | null>(null);
   const supabaseRef = useRef<SupabaseClient | null>(null);
   const articleRef = useRef<HTMLElement>(null);
+  const authPanelRef = useRef<HTMLElement>(null);
+  const topicInputRef = useRef<HTMLTextAreaElement>(null);
+  const shouldFocusTopicRef = useRef(false);
   const generationControllerRef = useRef<AbortController | null>(null);
 
   const clearDraft = useCallback(() => {
@@ -203,6 +207,56 @@ const HomePage = () => {
     articleRef.current.focus({ preventScroll: true });
   }, [apiResponse]);
 
+  useEffect(() => {
+    if (showAuth && authReady && !session) {
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      authPanelRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "center",
+      });
+      document.getElementById("auth-email")?.focus({ preventScroll: true });
+      return;
+    }
+
+    if (!session || !shouldFocusTopicRef.current) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      const topicInput = topicInputRef.current;
+      if (!topicInput) {
+        return;
+      }
+
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      topicInput.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "center",
+      });
+      topicInput.focus({ preventScroll: true });
+      shouldFocusTopicRef.current = false;
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [authReady, session, showAuth]);
+
+  const requestSignIn = () => {
+    if (session) {
+      return;
+    }
+
+    shouldFocusTopicRef.current = true;
+    setShowAuth(true);
+    setAuthError("");
+    setAuthMessage("");
+  };
+
   const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
     setErrorMessage("");
@@ -235,7 +289,7 @@ const HomePage = () => {
           throw error;
         }
         if (data.session) {
-          clearDraft();
+          setShowAuth(false);
         }
         if (!data.session) {
           setAuthMessage("Check your email for a confirmation link, then sign in.");
@@ -249,7 +303,7 @@ const HomePage = () => {
         if (error) {
           throw error;
         }
-        clearDraft();
+        setShowAuth(false);
       }
     } catch (error) {
       setAuthError(
@@ -293,10 +347,6 @@ const HomePage = () => {
     setCopyStatus("");
 
     try {
-      if (!session) {
-        throw new Error("Please sign in before generating an article.");
-      }
-
       const controller = new AbortController();
       generationControllerRef.current = controller;
 
@@ -304,7 +354,11 @@ const HomePage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
+          ...(session
+            ? {
+                Authorization: `Bearer ${session.access_token}`,
+              }
+            : {}),
         },
         body: JSON.stringify({ input: topic }),
         signal: controller.signal,
@@ -314,9 +368,14 @@ const HomePage = () => {
         output?: string;
         error?: string;
         remainingToday?: number;
+        signInRequired?: boolean;
       } = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429 && data.signInRequired && !session) {
+          requestSignIn();
+          return;
+        }
         throw new Error(data.error ?? "Unable to generate your article.");
       }
 
@@ -392,13 +451,14 @@ const HomePage = () => {
         <div className="ambient-glow ambient-glow-violet" />
         <div className="ambient-glow ambient-glow-cyan" />
 
-        {!authReady ? (
-          <div className="loading-state" role="status">
-            <span className="loading-spinner" />
-            <span>Restoring your session...</span>
-          </div>
-        ) : !session ? (
-          <section className="auth-panel" aria-labelledby="auth-title">
+        {showAuth && !session ? (
+          !authReady ? (
+            <div className="loading-state" role="status">
+              <span className="loading-spinner" />
+              <span>Restoring your session...</span>
+            </div>
+          ) : (
+          <section ref={authPanelRef} className="auth-panel" aria-labelledby="auth-title">
             <div className="eyebrow">
               <span className="sparkle" aria-hidden="true">✦</span>
               <span>Your writing workspace</span>
@@ -454,6 +514,7 @@ const HomePage = () => {
                 : "Already have an account? Sign in"}
             </button>
           </section>
+          )
         ) : (
         <>
         <section className="hero" aria-labelledby="page-title">
@@ -483,6 +544,7 @@ const HomePage = () => {
             </label>
             <textarea
               id="article-topic"
+              ref={topicInputRef}
               onChange={handleInput}
               value={input}
               maxLength={MAX_INPUT_LENGTH}
@@ -525,7 +587,7 @@ const HomePage = () => {
               <button
                 className="generate-button"
                 type="submit"
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || (Boolean(session) && !input.trim())}
               >
                 <span>{isLoading ? "Writing your draft..." : "Generate brief"}</span>
                 <span className="button-bolt" aria-hidden="true">
@@ -613,7 +675,9 @@ const HomePage = () => {
             </li>
             <li>
               <span className="safeguard-check" aria-hidden="true">✓</span>
-              Each account gets up to 5 generation attempts per UTC day.
+              Get 2 free generation attempts per IP address every hour. After
+              that, sign in to keep generating, with up to 5 attempts per UTC
+              day.
             </li>
             <li>
               <span className="safeguard-check" aria-hidden="true">✓</span>
